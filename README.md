@@ -4,7 +4,7 @@
 
 | 구성 | 위치 | 배포 |
 |---|---|---|
-| 웹판 | `프롬프트_템플릿_생성기.html` (한 파일) | Vercel 프로젝트 `261125_korail` |
+| 웹판 | `프롬프트_템플릿_생성기.html` (한 파일) | Vercel 프로젝트 `261125_korail` — https://261125korail-beryl.vercel.app |
 | 웹판 계정·자료 | `supabase/` (Auth + `user_data` 표, RLS) | Supabase 프로젝트 `261125_KORAIL` |
 | 데스크톱판 | `prompt98/` (Python tkinter + sqlite3) | GitHub Release 의 `Prompt98.exe` |
 | 작업지시서 | `작업지시서_프롬프트98_tkinter.md` | — |
