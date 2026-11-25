@@ -1,0 +1,16 @@
+# 파이썬·빌드 산출물
+prompt98/.venv/
+prompt98/build/
+prompt98/dist/
+__pycache__/
+*.pyc
+.pytest_cache/
+# 실행 파일은 GitHub Release 로 배포
+*.exe
+# 개인 대화 기록·로컬 설정
+대화기록_*.txt
+.env
+.env.*
+.vercel/
+supabase/.temp/
+supabase/.branches/
