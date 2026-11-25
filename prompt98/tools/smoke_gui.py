@@ -313,6 +313,44 @@ def main():
     a.undo()
     a.undo()
 
+    # ---------- 4-1. [1.5] 블록 AI 추천 (가짜 추천으로 — 진짜 모델 없이도 돈다)
+    from prompt98.dialogs import suggest as sugmod
+    real_suggest = sugmod.ai.suggest
+    real_model = os.environ.get("SMOKE_REAL_AI") == "1"
+    if not real_model:
+        sugmod.ai.suggest = lambda cfg, t, b, cancel=None, progress=None: (
+            progress and progress(42), ["- 첫째 추천", "- {{지연시간}}분 넘으면 사과 먼저"])[1]
+    root.update()
+    bi = next(i for i, w in enumerate(bp.widgets) if w.b.content.strip())
+    bw = bp.widgets[bi]
+    check("AI 추천 단추", bw.ai_btn is not None and bw.ai_btn.winfo_ismapped())
+    before = bw.b.content
+
+    def ai_actions(top):
+        def wait():
+            if top.loading:
+                return root.after(200, wait)
+            root.update()
+            shot("AI 추천", "02b_ai_suggest")
+            check("AI 추천 받음", len(top.items) >= 1, top.status.cget("text"))
+            if top.items:
+                top.pick.set(len(top.items) - 1)
+                top.btn["뒤에 붙이기"].invoke()
+            else:
+                top.cancel()
+        wait()
+    with_dialog(lambda: a.suggest_block(bw.b), ai_actions)
+    after = a.t.blocks[bi].content
+    check("AI 추천 뒤에 붙이기", after.startswith(before.rstrip()) and len(after) > len(before), after[-40:])
+    a.undo()
+    check("AI 추천 실행 취소", a.t.blocks[bi].content == before)
+    sugmod.ai.suggest = real_suggest
+    a.settings.set("ai_enabled", False)
+    bp.render()
+    check("AI 추천 끄면 단추 숨김", all(w.ai_btn is None for w in bp.widgets))
+    a.settings.set("ai_enabled", True)
+    bp.render()
+
     # ---------- 5. 점검·마스킹
     from prompt98.checks import run_checks
     r = run_checks(a.t)

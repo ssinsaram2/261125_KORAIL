@@ -5,7 +5,7 @@ import tkinter as tk
 from pathlib import Path
 from tkinter import filedialog
 
-from .. import theme
+from .. import ai, theme
 from ..paths import res
 from ..platform_win import Sound, open_folder
 from ..repository import SettingsRepo
@@ -68,6 +68,27 @@ class SettingsDialog(Dialog):
         Win98Button(gw, "자주 쓰는 기능 편집…", self.edit_quick, small=True).pack(anchor="w", pady=(Metrics.px(4), 0))
         self._paint_quick()
 
+        ga = GroupBox(self.body, "AI 추천 (Ollama)")
+        ga.pack(fill="x", pady=(Metrics.px(10), 0))
+        self.ai_on = tk.BooleanVar(value=settings.get_bool("ai_enabled", True))
+        tk.Checkbutton(ga, text="블록 편집기에 [AI 추천] 단추 보이기", variable=self.ai_on).pack(anchor="w")
+        ra = tk.Frame(ga)
+        ra.pack(fill="x", pady=(Metrics.px(4), 0))
+        tk.Label(ra, text="주소").grid(row=0, column=0, sticky="w")
+        self.ai_url = tk.Entry(ra, width=28)
+        self.ai_url.insert(0, settings.get("ai_url") or ai.DEFAULT_URL)
+        self.ai_url.grid(row=0, column=1, sticky="we", padx=Metrics.px(4))
+        tk.Label(ra, text="모델").grid(row=0, column=2, sticky="w", padx=(Metrics.px(6), 0))
+        self.ai_model = tk.Entry(ra, width=12)
+        self.ai_model.insert(0, settings.get("ai_model") or ai.DEFAULT_MODEL)
+        self.ai_model.grid(row=0, column=3, sticky="we", padx=Metrics.px(4))
+        ra.columnconfigure(1, weight=1)
+        rb = tk.Frame(ga)
+        rb.pack(fill="x", pady=(Metrics.px(4), 0))
+        Win98Button(rb, "연결 확인", self.check_ai, small=True).pack(side="left")
+        tk.Label(rb, text="이 PC 안에서만 동작하며, 쓰는 내용은 인터넷으로 보내지 않아요.", font=Fonts.small,
+                 fg=theme.HINT_FG).pack(side="left", padx=Metrics.px(6))
+
         g3 = GroupBox(self.body, "데이터 위치")
         g3.pack(fill="x", pady=(Metrics.px(10), 0))
         tk.Label(g3, text=str(data_dir), anchor="w", font=Fonts.small, wraplength=Metrics.px(440),
@@ -123,4 +144,24 @@ class SettingsDialog(Dialog):
         s.set("boot_sound_path", self.path)
         s.set("boot_sound_enabled", self.enabled.get())
         s.set("autosave_seconds", secs)
+        cfg = self._ai_cfg()
+        s.set("ai_enabled", self.ai_on.get())
+        s.set("ai_url", cfg.url)
+        s.set("ai_model", cfg.model)
         return True
+
+    def _ai_cfg(self) -> ai.AIConfig:
+        url = self.ai_url.get().strip().rstrip("/") or ai.DEFAULT_URL
+        if "://" not in url:
+            url = "http://" + url
+        return ai.AIConfig(url=url, model=self.ai_model.get().strip() or ai.DEFAULT_MODEL)
+
+    def check_ai(self):
+        self.config(cursor="watch")
+        self.update_idletasks()
+        try:
+            msgbox(self, ai.check(self._ai_cfg()), "AI 추천", "ok")
+        except ai.AIError as e:
+            msgbox(self, str(e), "AI 추천", "warn", width=460)
+        finally:
+            self.config(cursor="")

@@ -251,6 +251,9 @@ class SettingsRepo:
         "last_username": "",
         "window_geometry": "",
         "window_zoomed": "0",
+        "ai_enabled": "1",          # [1.5] 블록 AI 추천(Ollama)
+        "ai_url": "http://127.0.0.1:11434",
+        "ai_model": "gemma4",
     }
     USER_KEYS = frozenset({"last_template_uuid", "wizard_quick_features", "custom_block_types",
                            "samples_version", "first_run_done"})

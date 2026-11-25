@@ -9,7 +9,7 @@ import tkinter as tk
 from pathlib import Path
 from tkinter import ttk
 
-from . import APP_TITLE, __version__, theme
+from . import APP_TITLE, __version__, ai, theme
 from .boot import LoginScreen
 from .builder import build_prompt, missing_vars, used_vars
 from .checks import CheckResult, apply_fix, mask_template, sec_scan
@@ -21,6 +21,8 @@ from .dialogs.library import LibraryDialog
 from .dialogs.open_save import (OpenDialog, export_to_file, import_from_file, save_as_dialog,
                                 save_text_file)
 from .dialogs.settings import SettingsDialog, boot_sound_file
+from .dialogs.suggest import SuggestDialog
+from .dialogs.suggest import merge as suggest_merge
 from .dialogs.wizard import WizardDialog
 from .history import History
 from .model import (BLOCK_TYPES, CATEGORIES, Template, Variable, block_name, custom_block_types, new_uuid,
@@ -891,8 +893,40 @@ class App:
                 self.load_template(lib.editable_copy(), lib.name)
 
     def settings_dialog(self):
+        ai_before = self.ai_enabled()
         SettingsDialog(self.root, self.settings, self.sound, self.data_dir).show()
         self._paint_speaker()
+        if self.ai_enabled() != ai_before:          # AI 추천 단추를 보이거나 숨긴다
+            self.blocks_panel.render()
+
+    # ================================================================== [1.5] AI 추천
+    def ai_enabled(self) -> bool:
+        return self.settings.get_bool("ai_enabled", True)
+
+    def suggest_block(self, b):
+        """블록 하나에 쓸 내용을 gemma4(Ollama)에게 추천받아 고른 것을 넣는다 (Ctrl+Z 로 되돌리기)."""
+        if self._modal_open() or b not in self.t.blocks:
+            return
+        w = self.blocks_panel.widget_for(b.key)
+        if w is not None:
+            w._text_changed()                       # 방금 친 글자까지 모델에 반영
+        r = SuggestDialog(self.root, ai.AIConfig.from_settings(self.settings), self.t, b).show()
+        if not r or b not in self.t.blocks:
+            return
+        mode, text = r
+        self.snap()
+        new = suggest_merge(b.content, text, mode)
+        w = self.blocks_panel.widget_for(b.key)
+        if w is None:
+            b.content = new
+            self.refresh(blocks=True)
+        else:
+            w.set_content(new)
+            w._text_changed()
+            w.text.mark_set("insert", "end-1c")
+            w.text.see("insert")
+            w.text.focus_set()
+        self.flash("AI 추천을 넣었어요 (되돌리기: Ctrl+Z)")
 
     def help(self):
         msgbox(self.root,

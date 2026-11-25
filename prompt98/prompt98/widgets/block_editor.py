@@ -201,6 +201,13 @@ class BlockWidget(tk.Frame):
                        command=self._toggle).pack(side="left", padx=Metrics.px(6))
         self.count = tk.Label(foot, text=f"{len(b.content)}자", font=Fonts.small, fg=theme.HINT_FG)
         self.count.pack(side="right")
+        # [1.5] gemma4(Ollama) 추천 — 설정에서 끄면 단추가 보이지 않는다
+        self.ai_btn = None
+        if self.app.ai_enabled():
+            self.ai_btn = Win98Button(foot, "AI 추천", lambda: self.app.suggest_block(self.b), icon="wand", small=True)
+            self.ai_btn.pack(side="right", padx=(0, Metrics.px(6)))
+            Tooltip(self.ai_btn, "이 블록에 쓸 내용을 gemma4 가 추천해요 (블록 안에서 Ctrl+Space)")
+            self.text.bind("<Control-space>", lambda e: (self.app.suggest_block(self.b), "break")[1])
         self._style_enabled()
 
     # ------------------------------------------------------------------
