@@ -386,7 +386,7 @@ const store={get(k,d){try{const v=localStorage.getItem(sk(k));return v?JSON.pars
    계정은 Supabase Auth 에 <아이디>@users.prompt98.app 가상 이메일로 둔다(메일은 보내지 않음).
    사용자 자료는 user_data 표에 키별 JSON 으로 두고, 행 수준 보안(RLS)으로 자기 것만 읽고 쓴다.
    화면은 지금처럼 localStorage 를 쓰고, 바뀐 키만 모아 0.8초 뒤 서버에 올린다. */
-const SUPA_URL='%%SUPA_URL%%',SUPA_KEY='%%SUPA_KEY%%',MAIL_DOMAIN='users.prompt98.app';
+const SUPA_URL='https://zckeyayhusdqhoznymmy.supabase.co',SUPA_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inpja2V5YXlodXNkcWhvem55bW15Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTU1NzQxNTYsImV4cCI6MjExMTE1MDE1Nn0.Gx9Yr544y9SGwY-Zwh59YSxTgiTOe3m4ALbBbhz-tec',MAIL_DOMAIN='users.prompt98.app';
 const sb=(()=>{try{return window.supabase&&/^https:\/\/\w+\.supabase\.co$/.test(SUPA_URL)
   ?window.supabase.createClient(SUPA_URL,SUPA_KEY,{auth:{persistSession:false,autoRefreshToken:true,detectSessionInUrl:false}}):null}catch(e){return null}})();
 const CLOUD_KEYS=['cur','saved','quick','samplesV','blockTypes'];
